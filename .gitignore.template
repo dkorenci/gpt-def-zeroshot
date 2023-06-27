@@ -1,0 +1,10 @@
+# repo-wide ignores
+# copy to .gitignore to set you local configs independent from the repo
+
+.gitignore
+
+settings.py
+
+*.pyc
+.ipynb_checkpoints
+
