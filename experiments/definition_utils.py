@@ -42,13 +42,13 @@ def load_all_gen_defs():
     '''
     res = {}
     for seed in range(5):
-        file = Path(EXPERIM_V1_GENERATED_DEFS)/f'few_shot_definitions_seed_{seed}.csv'
+        file = Path(EXPERIM_V1_GENERATED_DEFS)/f'eg_definitions_{seed}.csv'
         defs = load_generated_defs_file(file)
         res[seed] = defs
     return res
 
 def load_gen_def_result(seed):
-    file = Path(EXPERIM_V1_GPT35_RESULTS)/f'gpt3_definition_results_seed_{seed}.csv'
+    file = Path(EXPERIM_V1_GPT35_RESULTS)/f'eg_results_{seed}.csv'
     return pd.read_csv(file, sep=',')
 
 def gendef_res_coprediction_matrix(df1, df2, chance_correct=True):
