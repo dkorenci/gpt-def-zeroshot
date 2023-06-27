@@ -17,34 +17,19 @@ EXPERIM_V1_CAT_SHORTCUTS = ['av', 'bmc', 'fv', 'hri', 'ip', 'nwo', 'prc', 'sat',
 # map shortcuts to cat ids, by index
 CAT_SHORTCUT2ID = {EXPERIM_V1_CAT_SHORTCUTS[i]: CONSPIRACY_CAT_IDS[i] for i in range(len(CONSPIRACY_CAT_IDS))}
 
-def load_generated_defs_file(file):
-    '''
-    Load generated definitions from a file.
-    :return: map of category id -> definition
-    '''
-    # must be in the same order as the definitions in the file
-    GENDEF_ORDER_CAT_SHORTCUTS = ['sc', 'bmc', 'av', 'fv', 'ip', 'hri', 'prc', 'nwo', 'sat']
-    df = pd.read_csv(file, sep=',')
-    res = {}
-    for ix in df.index:
-        r = df.iloc[ix, 1]
-        r = json.loads(r)
-        defn = r['choices'][0]['message']['content']
-        #print(defn)
-        cat = GENDEF_ORDER_CAT_SHORTCUTS[ix]
-        res[CAT_SHORTCUT2ID[cat]] = defn
-    #print()
-    return res
 
 def load_all_gen_defs():
     '''
-    :return: map random seed -> generated definitions
+    :return: map random seed -> generated definitions (map category id -> definition
     '''
     res = {}
-    for seed in range(5):
-        file = Path(EXPERIM_V1_GENERATED_DEFS)/f'eg_definitions_{seed}.csv'
-        defs = load_generated_defs_file(file)
-        res[seed] = defs
+    # must be in the same order as the definitions in the file
+    GENDEF_ORDER_CAT_SHORTCUTS = ['sc', 'bmc', 'av', 'fv', 'ip', 'hri', 'prc', 'nwo', 'sat']
+    file = Path(EXPERIM_V1_GENERATED_DEFS) / f'eg_definitions.csv'
+    df = pd.read_csv(file, sep=',')
+    for r in df.iterrows():
+        seed = r[1]['seed']
+        res[seed] = { CAT_SHORTCUT2ID[cat]: r[1][cat] for cat in GENDEF_ORDER_CAT_SHORTCUTS }
     return res
 
 def load_gen_def_result(seed):

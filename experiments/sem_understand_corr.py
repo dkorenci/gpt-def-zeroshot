@@ -35,6 +35,9 @@ def calc_gendef_golddef_correlation(seed_cat_def_score, cat2gold_emb, emb_model=
         print(f'Spearman corr. between {score_fns} and [gen2gold] dist: {spr.correlation:3.3f}, p {spr.pvalue:3.3f};')
 
 def gendefs_golddist2scores(emb_model='all-mpnet-base-v2'):
+    '''
+    The correlations use cosine distance so they need to be inverted to get correlations with similarity.
+    '''
     # prepare data
     SEEDS = [0, 1, 2, 3, 4]
     gen_defs = load_all_gen_defs() # map seed -> { cat_id -> def }
@@ -83,6 +86,9 @@ def calc_gendef_coprediction(seed_cat_def_score, emb_model, seeds):
     print(f'Spearman corr. between coprediction and sem.emb dists: {spr.correlation:3.3f}, p {spr.pvalue:3.3f};')
 
 def gendef_coprediction(emb_model='all-mpnet-base-v2'):
+    '''
+    The correlations use cosine distance so they need to be inverted to get correlations with similarity.
+    '''
     # prepare data
     SEEDS = [0, 1, 2, 3, 4]
     gen_defs = load_all_gen_defs() # map seed -> { cat_id -> def }
@@ -107,6 +113,7 @@ def gendef_coprediction(emb_model='all-mpnet-base-v2'):
 
 
 if __name__ == '__main__':
+    # The correlations use cosine distance so they need to be inverted to get correlations with similarity.
     gendefs_golddist2scores()
     gendef_coprediction()
 
