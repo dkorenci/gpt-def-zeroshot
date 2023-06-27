@@ -1,5 +1,5 @@
 # Code and data for the experiments of the article
-# 'Definitions Matter: Guiding GPT for Multi-label Classificatio'
+# 'Definitions Matter: Guiding GPT for Multi-label Classification'
 
 # CODE
 
