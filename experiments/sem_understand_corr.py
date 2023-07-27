@@ -53,12 +53,6 @@ def gendefs_golddist2scores(emb_model='all-mpnet-base-v2'):
             seed_cat_def_score.append((seed, cat_id, gen_defs[seed][cat_id], scores))
     print('GLOBAL CORRELATION')
     calc_gendef_golddef_correlation(seed_cat_def_score, cat2gold_emb, emb_model=emb_model)
-    # for seed in SEEDS:
-    #     seed_cat_def_score_seed = [s for s in seed_cat_def_score if s[0] == seed]
-    #     assert(len(seed_cat_def_score_seed) == 9) # nine categories
-    #     assert(set([s[1] for s in seed_cat_def_score_seed]) == set(CONSPIRACY_CAT_IDS)) # all categories covered
-    #     print(f'CORRELATION FOR SEED {seed}')
-    #     calc_gendef_golddef_correlation(seed_cat_def_score_seed, cat2gold_emb, emb_model=emb_model)
 
 def calc_gendef_coprediction(seed_cat_def_score, emb_model, seeds):
     gen_defs = [d for _, _, d, _ in seed_cat_def_score]
@@ -94,9 +88,6 @@ def gendef_coprediction(emb_model='all-mpnet-base-v2'):
     gen_defs = load_all_gen_defs() # map seed -> { cat_id -> def }
     gen_def_scores = load_all_def_scores() # map seed -> MultiCategoryScorer
     gold_defs = golddefs_as_catmap() # map cat_id -> gold def
-    # convert gold defs to embeddings
-    # gold_defs_embs = embed_texts([gold_defs[c] for c in CONSPIRACY_CAT_IDS], emb_model=emb_model)
-    # cat2gold_emb = {c: gold_defs_embs[i] for i, c in enumerate(CONSPIRACY_CAT_IDS)}
     seed_cat_def_score = []
     for seed in SEEDS:
         for cat_id in gen_defs[seed]:
@@ -104,12 +95,6 @@ def gendef_coprediction(emb_model='all-mpnet-base-v2'):
             seed_cat_def_score.append((seed, cat_id, gen_defs[seed][cat_id], scores))
     print('GLOBAL CORRELATION')
     calc_gendef_coprediction(seed_cat_def_score, emb_model=emb_model, seeds=SEEDS)
-    # for seed in SEEDS:
-    #     seed_cat_def_score_seed = [s for s in seed_cat_def_score if s[0] == seed]
-    #     assert(len(seed_cat_def_score_seed) == 9) # nine categories
-    #     assert(set([s[1] for s in seed_cat_def_score_seed]) == set(CONSPIRACY_CAT_IDS)) # all categories covered
-    #     print(f'CORRELATION FOR SEED {seed}')
-    #     calc_gendef_coprediction(seed_cat_def_score_seed, emb_model=emb_model, seeds=SEEDS)
 
 
 if __name__ == '__main__':
