@@ -3,6 +3,7 @@ from typing import List
 from scipy.spatial.distance import cosine, cdist
 from scipy.stats import spearmanr
 from sentence_transformers import SentenceTransformer
+import numpy as np
 
 from experiments.data_utils import CONSPIRACY_CAT_IDS
 from experiments.definition_utils import load_all_gen_defs, load_all_def_scores, \
@@ -20,6 +21,26 @@ def embed_texts(texts: List[str], emb_model='all-mpnet-base-v2'):
     st = get_emb_model(emb_model)
     return st.encode(texts)
 
+def calculate_confidence_interval(list1, list2, n_iterations=1000):
+    """
+    This function calculates the 95% confidence interval of the
+    Spearman correlation coefficient between two lists using bootstrapping.
+
+    Returns:
+        ci_low, ci_high (tuple): Lower and upper boundaries of the 95% confidence interval.
+    """
+    assert len(list1) == len(list2), "Both lists must have the same length"
+    list1, list2 = np.array(list1), np.array(list2)
+    bootstrap_corr = []
+    # Bootstrap sampling
+    for _ in range(n_iterations):
+        random_index = np.random.randint(0, len(list1), len(list1))
+        bootstrap_corr.append(spearmanr(list1[random_index], list2[random_index])[0])
+    # Compute the 2.5th and 97.5th percentiles of the bootstrap correlations to get the 95% confidence interval
+    ci_low, ci_high = np.percentile(bootstrap_corr, [2.5, 97.5])
+
+    return ci_low, ci_high
+
 def calc_gendef_golddef_correlation(seed_cat_def_score, cat2gold_emb, emb_model=emb_models):
     gen_defs = [d for _, _, d, _ in seed_cat_def_score]
     gen_defs_embs = embed_texts(gen_defs, emb_model=emb_model)
@@ -32,7 +53,8 @@ def calc_gendef_golddef_correlation(seed_cat_def_score, cat2gold_emb, emb_model=
             scr = s[score_fns][CONSPIRACY_CAT_IDS.index(cat_id)]
             scores.append(scr)
         spr = spearmanr(scores, cos2gold)
-        print(f'Spearman corr. between {score_fns} and [gen2gold] dist: {spr.correlation:3.3f}, p {spr.pvalue:3.3f};')
+        ci_low, ci_high = calculate_confidence_interval(scores, cos2gold)
+        print(f'Spearman corr. between {score_fns} and [gen2gold] dist: {spr.correlation:3.3f}, p {spr.pvalue:3.3f}; 95% CI: [{ci_low:3.3f}, {ci_high:3.3f}]')
 
 def gendefs_golddist2scores(emb_model='all-mpnet-base-v2'):
     '''
@@ -77,7 +99,8 @@ def calc_gendef_coprediction(seed_cat_def_score, emb_model, seeds):
                 dists.append(gen_def_dist[i][j])
     # correlation between copreds and dists
     spr = spearmanr(copreds, dists)
-    print(f'Spearman corr. between coprediction and sem.emb dists: {spr.correlation:3.3f}, p {spr.pvalue:3.3f};')
+    ci_low, ci_high = calculate_confidence_interval(copreds, dists)
+    print(f'Spearman corr. between coprediction and sem.emb dists: {spr.correlation:3.3f}, p {spr.pvalue:3.3f}; 95% CI: [{ci_low:3.3f}, {ci_high:3.3f}]')
 
 def gendef_coprediction(emb_model='all-mpnet-base-v2'):
     '''
