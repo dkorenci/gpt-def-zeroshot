@@ -47,7 +47,7 @@ def calc_gendef_golddef_correlation(seed_cat_def_score, cat2gold_emb, emb_model=
     cos2gold = []
     for i, (seed, cat_id, gen_def, scores) in enumerate(seed_cat_def_score):
         cos2gold.append(cosine(gen_defs_embs[i], cat2gold_emb[cat_id]))
-    for score_fns in ['_MCC', 'F1', 'R', 'P']:
+    for score_fns in ['_MCC', 'F1', 'R', 'P', 'length']:
         scores = []
         for _, cat_id, _, s in seed_cat_def_score:
             scr = s[score_fns][CONSPIRACY_CAT_IDS.index(cat_id)]
@@ -55,6 +55,9 @@ def calc_gendef_golddef_correlation(seed_cat_def_score, cat2gold_emb, emb_model=
         spr = spearmanr(scores, cos2gold)
         ci_low, ci_high = calculate_confidence_interval(scores, cos2gold)
         print(f'Spearman corr. between {score_fns} and [gen2gold] dist: {spr.correlation:3.3f}, p {spr.pvalue:3.3f}; 95% CI: [{ci_low:3.3f}, {ci_high:3.3f}]')
+
+def txt_length(def_txt):
+    return len(def_txt.split())
 
 def gendefs_golddist2scores(emb_model='all-mpnet-base-v2'):
     '''
@@ -72,6 +75,9 @@ def gendefs_golddist2scores(emb_model='all-mpnet-base-v2'):
     for seed in SEEDS:
         for cat_id in gen_defs[seed]:
             _, scores = gen_def_scores[seed].score()
+            # add def length to scores
+            def_txt = gen_defs[seed][cat_id]
+            scores['length'] = [txt_length(def_txt)]*len(CONSPIRACY_CAT_IDS)
             seed_cat_def_score.append((seed, cat_id, gen_defs[seed][cat_id], scores))
     print('GLOBAL CORRELATION')
     calc_gendef_golddef_correlation(seed_cat_def_score, cat2gold_emb, emb_model=emb_model)
@@ -81,7 +87,7 @@ def calc_gendef_coprediction(seed_cat_def_score, emb_model, seeds):
     gen_defs_embs = embed_texts(gen_defs, emb_model=emb_model)
     gen_def_dist = cdist(gen_defs_embs, gen_defs_embs, metric='cosine')
     # calculate correlation
-    copreds = []
+    copreds = []; lengths = [];
     dists = []
     # cache results of gendef_res_coprediction_matrix, for each pair of seeds
     copred_cached = {}
@@ -96,11 +102,15 @@ def calc_gendef_coprediction(seed_cat_def_score, emb_model, seeds):
             if i < j:
                 copred = copred_cached[(seed1, seed2)]
                 copreds.append(copred[cat_id1][cat_id2])
+                lengths.append(abs(txt_length(gen_def1)-txt_length(gen_def2)))
                 dists.append(gen_def_dist[i][j])
     # correlation between copreds and dists
     spr = spearmanr(copreds, dists)
     ci_low, ci_high = calculate_confidence_interval(copreds, dists)
     print(f'Spearman corr. between coprediction and sem.emb dists: {spr.correlation:3.3f}, p {spr.pvalue:3.3f}; 95% CI: [{ci_low:3.3f}, {ci_high:3.3f}]')
+    spr = spearmanr(copreds, lengths)
+    ci_low, ci_high = calculate_confidence_interval(copreds, lengths)
+    print(f'Spearman corr. between length.diff and sem.emb dists: {spr.correlation:3.3f}, p {spr.pvalue:3.3f}; 95% CI: [{ci_low:3.3f}, {ci_high:3.3f}]')
 
 def gendef_coprediction(emb_model='all-mpnet-base-v2'):
     '''
@@ -123,6 +133,6 @@ def gendef_coprediction(emb_model='all-mpnet-base-v2'):
 if __name__ == '__main__':
     # The correlations use cosine distance so they need to be inverted to get correlations with similarity.
     gendefs_golddist2scores()
-    gendef_coprediction()
+    #gendef_coprediction()
 
 
